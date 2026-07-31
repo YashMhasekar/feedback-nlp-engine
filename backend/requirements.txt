@@ -29,3 +29,5 @@ python-dotenv==1.0.0
 
 # ---- Terminal Output Formatting (nlp_test.py) ----
 colorama==0.4.6
+
+gunicorn==23.0.0
