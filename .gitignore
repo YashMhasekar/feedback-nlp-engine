@@ -1,0 +1,193 @@
+# ============================================
+# FEEDBACK NLP ENGINE - Git Ignore Rules
+# ============================================
+
+# Environment Variables (IMPORTANT: Never commit API keys!)
+.env
+backend/.env
+frontend/.env
+*.env
+!.env.example
+!backend/.env.example
+!frontend/.env.example
+
+# ============================================
+# GENERATED FILES (Output from application)
+# ============================================
+
+# Generated analyses and reports
+generated/
+generated/analyses/*.csv
+generated/analyses/*.xlsx
+generated/exports/*.csv
+!generated/.gitkeep
+!generated/analyses/.gitkeep
+!generated/exports/.gitkeep
+
+# User uploads
+uploads/
+backend/uploads/*.csv
+backend/uploads/*.xlsx
+backend/uploads/*.xls
+backend/uploads/*.tsv
+!uploads/.gitkeep
+!backend/uploads/.gitkeep
+
+# Test data outputs (keep source test data, ignore generated)
+test_data/analyzed_*.csv
+test_data/analyzed_*.xlsx
+test_data/*_output.*
+
+# ============================================
+# DATABASES
+# ============================================
+
+# Active production databases (keep these in backend/)
+# These are tracked by git for development
+# backend/database.db
+# backend/feedback_analysis.db  
+# backend/student_feedback.db
+
+# Old/archived databases (already moved to archive/)
+archive/old_databases/*.db
+
+# Temporary database files
+*.db-journal
+*.db-shm
+*.db-wal
+
+# ============================================
+# PYTHON
+# ============================================
+
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+venv/
+ENV/
+env/
+.venv
+
+# ============================================
+# NODE / FRONTEND
+# ============================================
+
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Keep package-lock.json for consistent installs
+# package-lock.json
+
+# Frontend build output
+frontend/build/
+frontend/dist/
+
+# ============================================
+# IDE / EDITOR
+# ============================================
+
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+
+# ============================================
+# LOGS
+# ============================================
+
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ============================================
+# OS SPECIFIC
+# ============================================
+
+# Windows
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Linux
+*~
+.directory
+
+# ============================================
+# TESTING
+# ============================================
+
+.pytest_cache/
+.coverage
+htmlcov/
+coverage/
+.tox/
+.hypothesis/
+
+# ============================================
+# BUILD ARTIFACTS
+# ============================================
+
+*.pyc
+*.pyo
+*.pyd
+pip-log.txt
+pip-delete-this-directory.txt
+*.spec
+
+# ============================================
+# TEMPORARY FILES
+# ============================================
+
+*.tmp
+*.temp
+*.bak
+*.swp
+*~.nib
+.lock-wscript
+
+# ============================================
+# ARCHIVE FOLDER
+# ============================================
+
+# Archive folder is kept in git to show what was removed
+# But specific files inside can be ignored if too large
+# archive/old_databases/*.db (already covered above)
+
+# ============================================
+# CLEANUP SCRIPTS (temporary)
+# ============================================
+
+organize_files.ps1
+verify_integrity.py

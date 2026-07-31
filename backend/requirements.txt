@@ -1,0 +1,31 @@
+# ============================================================
+# Feedback NLP Engine - Backend Dependencies
+# Generated after full import audit of all production modules
+# ============================================================
+
+# ---- Web Framework ----
+flask==2.3.3
+flask-cors==4.0.0
+flask-jwt-extended==4.5.3
+werkzeug==2.3.7
+
+# ---- Data Processing ----
+pandas==2.0.3
+openpyxl==3.1.2
+xlrd==2.0.1
+
+# ---- NLP & ML (nlp_test.py) ----
+transformers==4.35.2
+torch==2.1.0
+
+# ---- AI / Gemini (nlp_test.py) ----
+google-generativeai==0.3.2
+
+# ---- Firebase Sync (firebase_config.py) ----
+requests==2.31.0
+
+# ---- Environment & Config ----
+python-dotenv==1.0.0
+
+# ---- Terminal Output Formatting (nlp_test.py) ----
+colorama==0.4.6
