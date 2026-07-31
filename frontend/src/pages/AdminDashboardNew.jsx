@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import AlertsManagement from '../components/AlertsManagement';
 
-const API_BASE_URL = 'http://localhost:5002';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5002';
 
 // Animated Counter Component
 const AnimatedCounter = ({ value, duration = 1000 }) => {

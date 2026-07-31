@@ -633,8 +633,10 @@ const AnalyzeFeedbackContent = ({ onAnalysisComplete }) => {
 
       console.log("Uploading file:", selectedFile.name);
 
+      const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5002";
+
       const response = await fetch(
-        "http://localhost:5002/api/analyze-feedback",
+        `${API_BASE_URL}/api/analyze-feedback`,
         {
           method: "POST",
           body: formData,
@@ -699,8 +701,9 @@ const AnalyzeFeedbackContent = ({ onAnalysisComplete }) => {
 
   const handleDownload = () => {
     if (analysisResult && analysisResult.download_url) {
+      const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5002";
       window.open(
-        `http://localhost:5002${analysisResult.download_url}`,
+        `${API_BASE_URL}${analysisResult.download_url}`,
         "_blank"
       );
     }
@@ -1755,9 +1758,10 @@ const StudentFeedbackContent = () => {
     setError(null);
 
     try {
+      const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5002";
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        `http://localhost:5002/api/faculty/${user.id}/student_feedbacks`,
+        `${API_BASE_URL}/api/faculty/${user.id}/student_feedbacks`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -1860,7 +1864,7 @@ const StudentFeedbackContent = () => {
           <p className="text-sm text-gray-500">
             Share the student feedback link:{" "}
             <span className="font-mono bg-gray-200 px-2 py-1 rounded">
-              http://localhost:4010/student
+              {window.location.origin}/student
             </span>
           </p>
         </div>

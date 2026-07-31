@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5002';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5002';
 
 const TestTrendsAPI = () => {
   const { user } = useAuth();
