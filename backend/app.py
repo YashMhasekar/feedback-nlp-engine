@@ -25,22 +25,28 @@ init_alerts_db()  # Alerts database
 init_student_feedback_db()  # Student feedback submissions database
 
 # Import NLP engine
-from nlp_engine import analyze_feedback_csv
-    print("✓ Successfully imported analyze_feedback_csv from nlp_test.py")
-    
+# Import NLP engine
+try:
+    from nlp_engine import analyze_feedback_csv
+
+    print("✓ Successfully imported analyze_feedback_csv from nlp_engine.py")
+
     # Check if Gemini API key is configured
     api_key = os.environ.get("GOOGLE_API_KEY")
+
     if api_key and api_key != "your_api_key_here":
         print("✓ Gemini API key loaded successfully")
     else:
-        print("⚠️  WARNING: Gemini API key not configured!")
-        print("   Set GOOGLE_API_KEY in .env file for AI summary generation")
-except ImportError:
-    print("⚠ Warning: nlp_test.py not found. Using mock function for testing.")
+        print("⚠️ WARNING: Gemini API key not configured!")
+        print("   Set GOOGLE_API_KEY in Render Environment Variables")
+
+except ImportError as e:
+    print(f"⚠ Warning: Failed to import nlp_engine.py: {e}")
+
     
     def analyze_feedback_csv(input_file, feedback_column, output_file):
         """
-        Mock function for testing when nlp_test.py is not available
+        Mock function for testing when nlp_engine.py is not available
         Creates a properly formatted analyzed CSV file
         """
         import pandas as pd
