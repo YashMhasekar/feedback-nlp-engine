@@ -25,106 +25,72 @@ init_alerts_db()  # Alerts database
 init_student_feedback_db()  # Student feedback submissions database
 
 # Import NLP engine
-# Import NLP engine
+# NOTE: nlp_engine.py no longer loads any ML models at import time.
+# All heavy work (Gemini API calls) happens only when analysis endpoints are called.
 try:
     from nlp_engine import analyze_feedback_csv
 
-    print("✓ Successfully imported analyze_feedback_csv from nlp_engine.py")
+    print("✓ NLP engine imported (no local models loaded at startup)")
 
     # Check if Gemini API key is configured
     api_key = os.environ.get("GOOGLE_API_KEY")
-
     if api_key and api_key != "your_api_key_here":
-        print("✓ Gemini API key loaded successfully")
+        print("✓ Gemini API key detected")
     else:
-        print("⚠️ WARNING: Gemini API key not configured!")
+        print("⚠️ WARNING: GOOGLE_API_KEY not configured!")
         print("   Set GOOGLE_API_KEY in Render Environment Variables")
 
 except ImportError as e:
+    # nlp_engine.py failed to import (missing google-generativeai or similar).
+    # Define a minimal keyword-based fallback so Flask can still start.
     print(f"⚠ Warning: Failed to import nlp_engine.py: {e}")
+    print("  Falling back to keyword-based analysis (no Gemini).")
 
-    
     def analyze_feedback_csv(input_file, feedback_column, output_file):
-        """
-        Mock function for testing when nlp_engine.py is not available
-        Creates a properly formatted analyzed CSV file
-        """
+        """Emergency keyword-only fallback (no Gemini, no ML models)."""
         import pandas as pd
-        import random
-        
-        print(f"[MOCK] Reading input file: {input_file}")
-        
-        # Read the input CSV
-        df = pd.read_csv(input_file)
-        
-        print(f"[MOCK] Processing {len(df)} feedback entries")
-        
-        # Add analysis columns
-        sentiments = []
-        categories = []
-        suggestions = []
-        alerts = []
-        
-        for idx, row in df.iterrows():
-            feedback = str(row.get(feedback_column, ""))
-            
-            # Simple sentiment analysis based on keywords
-            feedback_lower = feedback.lower()
-            if any(word in feedback_lower for word in ['excellent', 'great', 'good', 'love', 'helpful', 'best']):
-                sentiment = "POSITIVE"
-                suggestion = "Continue with current teaching methods."
-            elif any(word in feedback_lower for word in ['bad', 'poor', 'difficult', 'slow', 'need', 'too']):
-                sentiment = "NEGATIVE"
-                suggestion = "Address the concerns raised by students."
+
+        df = pd.read_csv(input_file) if input_file.endswith('.csv') else pd.read_excel(input_file)
+        sentiments, categories, suggestions, alerts, censored = [], [], [], [], []
+
+        pos_words = {'excellent', 'great', 'good', 'love', 'helpful', 'best', 'amazing', 'clear', 'well'}
+        neg_words = {'bad', 'poor', 'difficult', 'slow', 'boring', 'confusing', 'unhelpful', 'rude', 'fail'}
+        alert_words = {'harassment', 'unsafe', 'discrimination', 'threat', 'abuse', 'violence', 'bullying'}
+
+        for _, row in df.iterrows():
+            fb = str(row.get(feedback_column, ""))
+            words = set(fb.lower().split())
+            pos = len(words & pos_words)
+            neg = len(words & neg_words)
+            s = "POSITIVE" if pos > neg else ("NEGATIVE" if neg > pos else "NEUTRAL")
+            fb_low = fb.lower()
+            if any(w in fb_low for w in ['teach', 'professor', 'lecture', 'explain', 'instructor']):
+                cat = "Teaching"
+            elif any(w in fb_low for w in ['lab', 'equipment', 'computer', 'classroom', 'facility']):
+                cat = "Infrastructure"
+            elif any(w in fb_low for w in ['content', 'course', 'material', 'syllabus', 'assignment']):
+                cat = "Course Content"
             else:
-                sentiment = "NEUTRAL"
-                suggestion = "Monitor feedback for improvements."
-            
-            # Categorize based on keywords
-            if any(word in feedback_lower for word in ['teach', 'professor', 'lecture', 'explain']):
-                category = "Teaching"
-            elif any(word in feedback_lower for word in ['lab', 'equipment', 'computer', 'classroom']):
-                category = "Infrastructure"
-            elif any(word in feedback_lower for word in ['assignment', 'project', 'deadline', 'work']):
-                category = "Coursework"
-            elif any(word in feedback_lower for word in ['content', 'course', 'material']):
-                category = "Course Content"
-            else:
-                category = "General"
-            
-            # Check for alerts
-            alert = any(word in feedback_lower for word in ['harassment', 'unsafe', 'discrimination', 'threat'])
-            
-            sentiments.append(sentiment)
-            categories.append(category)
-            suggestions.append(suggestion)
-            alerts.append(alert)
-        
-        # Add columns to dataframe
+                cat = "Behavior"
+            alert = any(w in fb_low for w in alert_words)
+            sentiments.append(s)
+            categories.append(cat)
+            suggestions.append("Please review this feedback.")
+            alerts.append("Yes" if alert else "No")
+            censored.append(fb)
+
         df['Sentiment'] = sentiments
         df['Category'] = categories
         df['Suggestion'] = suggestions
         df['Alert'] = alerts
-        
-        # Save to output file
+        df['Censored_Feedback'] = censored
+        df['Summary'] = "Analysis completed using keyword fallback (Gemini unavailable)."
         df.to_csv(output_file, index=False)
-        print(f"[MOCK] Saved analyzed file to: {output_file}")
-        
-        # Calculate stats
-        sentiment_counts = pd.Series(sentiments).value_counts().to_dict()
-        
-        # Return result
+        counts = pd.Series(sentiments).value_counts().to_dict()
         return {
             "status": "ok",
-            "summary": f"Analysis completed successfully. Processed {len(df)} feedback entries. Overall sentiment is mostly positive with some areas for improvement in infrastructure and coursework.",
-            "stats": {
-                "total": len(df),
-                "positive": sentiment_counts.get("POSITIVE", 0),
-                "neutral": sentiment_counts.get("NEUTRAL", 0),
-                "negative": sentiment_counts.get("NEGATIVE", 0),
-                "alerts": sum(alerts)
-            },
-            "analyzed_file": output_file
+            "summary": "Analysis completed using keyword fallback (Gemini unavailable).",
+            "output_file": output_file,
         }
 
 app = Flask(__name__)
@@ -137,8 +103,15 @@ from datetime import timedelta
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=24)
 
 # Initialize extensions
-CORS(app, 
-     origins=['http://localhost:4010', 'http://localhost:3011', 'http://localhost:3000'],
+CORS(app,
+     origins=[
+         'http://localhost:4010',
+         'http://localhost:3011',
+         'http://localhost:3000',
+         # Render-hosted frontend (update subdomain if your frontend URL differs)
+         'https://feedback-nlp-engine.onrender.com',
+         'https://feedback-nlp-engine-frontend.onrender.com',
+     ],
      supports_credentials=True,
      allow_headers=['Content-Type', 'Authorization'],
      methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'])
@@ -1017,5 +990,4 @@ if __name__ == "__main__":
     print("⏳ Waiting for requests...\n")
     
     # Run without debug mode to prevent constant reloading
-    # Debug mode causes issues with transformers library file watching
     app.run(debug=False, host="0.0.0.0", port=5002)

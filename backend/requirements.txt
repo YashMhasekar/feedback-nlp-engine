@@ -1,6 +1,7 @@
 # ============================================================
 # Feedback NLP Engine - Backend Dependencies
-# Generated after full import audit of all production modules
+# Optimised for Render FREE (512 MB RAM)
+# Removed: torch, transformers (replaced by Gemini API)
 # ============================================================
 
 # ---- Web Framework ----
@@ -15,12 +16,8 @@ pandas==2.0.3
 openpyxl==3.1.2
 xlrd==2.0.1
 
-# ---- NLP & ML (nlp_test.py) ----
-transformers==4.35.2
-torch==2.1.0
-
-# ---- AI / Gemini (nlp_test.py) ----
-google-generativeai==0.3.2
+# ---- AI / Gemini ----
+google-generativeai==0.8.6
 
 # ---- Firebase Sync (firebase_config.py) ----
 requests==2.31.0
@@ -28,7 +25,8 @@ requests==2.31.0
 # ---- Environment & Config ----
 python-dotenv==1.0.0
 
-# ---- Terminal Output Formatting (nlp_test.py) ----
+# ---- Terminal Output Formatting ----
 colorama==0.4.6
 
+# ---- Production Server ----
 gunicorn==23.0.0
