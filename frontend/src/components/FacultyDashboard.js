@@ -39,7 +39,7 @@ const FacultyDashboard = ({ user: propUser, onLogout: propLogout }) => {
   const navigate = useNavigate();
   const { user: contextUser, logout: contextLogout } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 1024);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0); // NEW: Trigger for refreshing trends
   const [alertCount, setAlertCount] = useState(0); // Track alert count
@@ -187,28 +187,35 @@ const FacultyDashboard = ({ user: propUser, onLogout: propLogout }) => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50 overflow-hidden">
+      {/* Mobile Overlay */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-10 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        ></div>
+      )}
+
       {/* Sidebar */}
       <aside
         className={`${
-          isSidebarOpen ? "w-72" : "w-20"
-        } bg-white border-r border-gray-200 transition-all duration-300 flex flex-col`}
+          isSidebarOpen ? "translate-x-0 w-72" : "-translate-x-full lg:translate-x-0 w-72 lg:w-20"
+        } fixed lg:relative h-full bg-white border-r border-gray-200 transition-all duration-300 flex flex-col z-20 shadow-xl lg:shadow-none`}
       >
         {/* Logo */}
-        <div className="p-6 border-b border-gray-100">
+        <div className="p-4 sm:p-6 border-b border-gray-100">
           <div className="flex items-center justify-between">
-            {isSidebarOpen && (
+            {(isSidebarOpen) && (
               <button
                 onClick={handleLogoClick}
                 className="flex items-center space-x-3 hover:opacity-80 transition-opacity cursor-pointer"
               >
-                <div className="w-12 h-12 bg-gradient-to-br from-violet-500 to-fuchsia-600 rounded-xl flex items-center justify-center shadow-lg overflow-hidden">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-violet-500 to-fuchsia-600 rounded-xl flex items-center justify-center shadow-lg overflow-hidden flex-shrink-0">
                   <img
                     src="/imagelogo.jpeg"
                     alt="Logo"
                     className="w-full h-full object-cover"
                     onError={(e) => {
-                      // Fallback to icon if image doesn't load
                       e.target.style.display = "none";
                       e.target.nextSibling.style.display = "block";
                     }}
@@ -228,7 +235,7 @@ const FacultyDashboard = ({ user: propUser, onLogout: propLogout }) => {
                   </svg>
                 </div>
                 <div>
-                  <h1 className="text-lg font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent">
+                  <h1 className="text-base sm:text-lg font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent">
                     Feedback Analyzer
                   </h1>
                   <p className="text-xs text-gray-600 font-medium">
@@ -239,7 +246,7 @@ const FacultyDashboard = ({ user: propUser, onLogout: propLogout }) => {
             )}
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="p-2 hover:bg-purple-50 rounded-lg transition-colors"
+              className="p-2 hover:bg-purple-50 rounded-lg transition-colors ml-auto"
             >
               <svg
                 className="w-5 h-5 text-gray-600"
@@ -259,25 +266,31 @@ const FacultyDashboard = ({ user: propUser, onLogout: propLogout }) => {
         </div>
 
         {/* Menu Items */}
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+        <nav className="flex-1 p-3 sm:p-4 space-y-1 overflow-y-auto">
           {menuItems.map((item) => (
             <button
               key={item.id}
-              onClick={() => setActiveTab(item.id)}
+              onClick={() => {
+                setActiveTab(item.id);
+                // Auto-close sidebar on mobile when a tab is selected
+                if (window.innerWidth < 1024) {
+                  setIsSidebarOpen(false);
+                }
+              }}
               className={`w-full flex items-center ${
                 isSidebarOpen ? "px-4" : "px-2 justify-center"
-              } py-3.5 rounded-lg transition-all duration-200 group ${
+              } py-3 sm:py-3.5 rounded-lg transition-all duration-200 group ${
                 activeTab === item.id
                   ? "bg-blue-50 text-blue-600 font-medium"
                   : "text-gray-600 hover:bg-gray-50"
               }`}
             >
-              <span className="text-xl">{item.icon}</span>
+              <span className="text-xl flex-shrink-0">{item.icon}</span>
               {isSidebarOpen && (
-                <span className="ml-3 text-sm">{item.label}</span>
+                <span className="ml-3 text-sm truncate">{item.label}</span>
               )}
               {activeTab === item.id && isSidebarOpen && (
-                <div className="ml-auto w-1 h-6 bg-gradient-to-b from-violet-500 to-fuchsia-600 rounded-full shadow-md"></div>
+                <div className="ml-auto w-1 h-6 bg-gradient-to-b from-violet-500 to-fuchsia-600 rounded-full shadow-md flex-shrink-0"></div>
               )}
             </button>
           ))}
@@ -286,7 +299,7 @@ const FacultyDashboard = ({ user: propUser, onLogout: propLogout }) => {
         {/* Sidebar Footer */}
         {isSidebarOpen && (
           <div className="p-4 border-t border-gray-100">
-            <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-100">
+            <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-3 sm:p-4 border border-purple-100">
               <p className="text-xs font-bold text-gray-700 mb-1">Need Help?</p>
               <p className="text-xs text-gray-600 mb-3 font-medium">
                 Check our documentation
@@ -300,17 +313,27 @@ const FacultyDashboard = ({ user: propUser, onLogout: propLogout }) => {
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         {/* Enhanced Top Bar */}
-        <header className="bg-gradient-to-r from-purple-50 via-pink-50 to-rose-50 border-b-2 border-purple-100 px-8 py-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            {/* Left Section with Logo */}
-            <div className="flex items-center space-x-4">
+        <header className="bg-gradient-to-r from-purple-50 via-pink-50 to-rose-50 border-b-2 border-purple-100 px-3 sm:px-6 lg:px-8 py-3 sm:py-4 shadow-sm flex-shrink-0">
+          <div className="flex items-center justify-between gap-2">
+            {/* Mobile hamburger button */}
+            <button
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="lg:hidden w-10 h-10 flex items-center justify-center rounded-xl bg-white/60 hover:bg-white transition-colors flex-shrink-0"
+            >
+              <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+
+            {/* Left Section with Logo - hidden on small mobile, shown on md+ */}
+            <div className="hidden md:flex items-center space-x-3 lg:space-x-4 min-w-0">
               <button
                 onClick={handleLogoClick}
-                className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
+                className="flex items-center space-x-2 hover:opacity-80 transition-opacity flex-shrink-0"
               >
-                <div className="w-12 h-12 bg-gradient-to-br from-violet-500 to-fuchsia-600 rounded-xl flex items-center justify-center shadow-lg overflow-hidden">
+                <div className="w-9 h-9 lg:w-12 lg:h-12 bg-gradient-to-br from-violet-500 to-fuchsia-600 rounded-xl flex items-center justify-center shadow-lg overflow-hidden">
                   <img
                     src="/imagelogo.jpeg"
                     alt="Logo"
@@ -321,46 +344,44 @@ const FacultyDashboard = ({ user: propUser, onLogout: propLogout }) => {
                     }}
                   />
                   <svg
-                    className="w-7 h-7 text-white hidden"
+                    className="w-6 h-6 text-white hidden"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                    />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                   </svg>
                 </div>
-                <div>
-                  <h1 className="text-xl font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent">
+                <div className="hidden lg:block">
+                  <h1 className="text-base lg:text-xl font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent">
                     Feedback Analyzer
                   </h1>
-                  <p className="text-xs text-gray-600 font-medium">
-                    Faculty Dashboard
-                  </p>
+                  <p className="text-xs text-gray-600 font-medium">Faculty Dashboard</p>
                 </div>
               </button>
-              <div className="h-10 w-px bg-purple-200"></div>
-              <div>
-                <h2 className="text-xl font-bold text-gray-800">
+              <div className="hidden lg:block h-10 w-px bg-purple-200 flex-shrink-0"></div>
+              <div className="hidden lg:block min-w-0">
+                <h2 className="text-base lg:text-xl font-bold text-gray-800 truncate">
                   Welcome back, {facultyName}
                 </h2>
-                <p className="text-gray-600 text-sm font-medium">
+                <p className="text-gray-600 text-xs sm:text-sm font-medium">
                   Here's your feedback analysis overview
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center space-x-3">
-              {/* Search */}
-              <div className="relative hidden md:block">
+            {/* Mobile: Show title */}
+            <div className="md:hidden flex-1 min-w-0">
+              <h2 className="text-sm font-bold text-gray-800 truncate">Welcome, {facultyName}</h2>
+            </div>
+
+            <div className="flex items-center space-x-1 sm:space-x-2 lg:space-x-3 flex-shrink-0">
+              {/* Search - hidden on small screens */}
+              <div className="relative hidden lg:block">
                 <input
                   type="text"
                   placeholder="Search..."
-                  className="w-64 pl-10 pr-4 py-2.5 border-2 border-purple-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent bg-white/80 backdrop-blur-sm"
+                  className="w-48 xl:w-64 pl-10 pr-4 py-2.5 border-2 border-purple-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent bg-white/80 backdrop-blur-sm"
                 />
                 <svg
                   className="w-5 h-5 text-purple-400 absolute left-3 top-3"
@@ -368,40 +389,30 @@ const FacultyDashboard = ({ user: propUser, onLogout: propLogout }) => {
                   stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </div>
 
               {/* Notifications */}
-              <button className="relative p-3 hover:bg-white/60 rounded-xl transition-all hover:shadow-md">
+              <button className="relative p-2 sm:p-3 hover:bg-white/60 rounded-xl transition-all hover:shadow-md">
                 <svg
-                  className="w-6 h-6 text-gray-700"
+                  className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                  />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>
-                <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-gradient-to-r from-rose-500 to-pink-500 rounded-full ring-2 ring-white animate-pulse"></span>
+                <span className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 w-2 h-2 sm:w-2.5 sm:h-2.5 bg-gradient-to-r from-rose-500 to-pink-500 rounded-full ring-2 ring-white animate-pulse"></span>
               </button>
 
               {/* Profile */}
               <div className="relative">
                 <button
                   onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-                  className="flex items-center space-x-3 pl-4 pr-3 py-2.5 hover:bg-white/60 rounded-xl transition-all hover:shadow-md"
+                  className="flex items-center space-x-1 sm:space-x-2 lg:space-x-3 pl-2 sm:pl-4 pr-2 sm:pr-3 py-2 sm:py-2.5 hover:bg-white/60 rounded-xl transition-all hover:shadow-md"
                 >
-                  <div className="text-right hidden md:block">
+                  <div className="text-right hidden lg:block">
                     <p className="text-sm font-bold text-gray-800">
                       {facultyName}
                     </p>
@@ -409,26 +420,21 @@ const FacultyDashboard = ({ user: propUser, onLogout: propLogout }) => {
                       {user.role}
                     </p>
                   </div>
-                  <div className="w-11 h-11 bg-gradient-to-br from-violet-500 to-fuchsia-600 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg">
+                  <div className="w-9 h-9 sm:w-11 sm:h-11 bg-gradient-to-br from-violet-500 to-fuchsia-600 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg flex-shrink-0">
                     {userInitials}
                   </div>
                   <svg
-                    className="w-5 h-5 text-gray-600"
+                    className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 hidden sm:block"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 9l-7 7-7-7"
-                    />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
 
                 {showProfileDropdown && (
-                  <div className="absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-2xl border-2 border-purple-100 py-2 z-50 animate-fade-in">
+                  <div className="absolute right-0 mt-3 w-56 sm:w-64 bg-white rounded-2xl shadow-2xl border-2 border-purple-100 py-2 z-50 animate-fade-in">
                     <div className="px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-purple-50 to-pink-50">
                       <p className="text-base font-bold text-gray-800">
                         {facultyName}
@@ -539,7 +545,7 @@ const FacultyDashboard = ({ user: propUser, onLogout: propLogout }) => {
         </header>
 
         {/* Content Area */}
-        <main className="flex-1 overflow-y-auto p-6">{renderContent()}</main>
+        <main className="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6">{renderContent()}</main>
       </div>
     </div>
   );
@@ -717,10 +723,10 @@ const AnalyzeFeedbackContent = ({ onAnalysisComplete }) => {
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-pink-100 to-rose-100 opacity-25 rounded-full -ml-32 -mb-32"></div>
 
         <div className="relative z-10">
-          <div className="flex items-center space-x-4 mb-6">
-            <div className="w-16 h-16 bg-gradient-to-br from-violet-500 to-fuchsia-600 rounded-2xl flex items-center justify-center shadow-lg">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4 mb-6">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-violet-500 to-fuchsia-600 rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0">
               <svg
-                className="w-9 h-9 text-white"
+                className="w-7 h-7 sm:w-9 sm:h-9 text-white"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -734,53 +740,53 @@ const AnalyzeFeedbackContent = ({ onAnalysisComplete }) => {
               </svg>
             </div>
             <div>
-              <h3 className="text-3xl font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent mb-1">
+              <h3 className="text-xl sm:text-3xl font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent mb-1">
                 Analyze Student Feedback
               </h3>
-              <p className="text-gray-700 text-base font-medium">
+              <p className="text-gray-700 text-sm sm:text-base font-medium">
                 Transform raw feedback into actionable insights with AI-powered
                 analysis
               </p>
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-4 mt-6">
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-5 border-2 border-emerald-200 shadow-md hover:shadow-lg transition-all">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mt-6">
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 sm:p-5 border-2 border-emerald-200 shadow-md hover:shadow-lg transition-all">
               <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center shadow-md">
-                  <span className="text-2xl">🎯</span>
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center shadow-md flex-shrink-0">
+                  <span className="text-xl sm:text-2xl">🎯</span>
                 </div>
                 <div>
                   <p className="text-gray-600 text-xs font-semibold uppercase tracking-wide">
                     Accuracy
                   </p>
-                  <p className="text-emerald-600 text-xl font-bold">98.5%</p>
+                  <p className="text-emerald-600 text-lg sm:text-xl font-bold">98.5%</p>
                 </div>
               </div>
             </div>
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-5 border-2 border-amber-200 shadow-md hover:shadow-lg transition-all">
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 sm:p-5 border-2 border-amber-200 shadow-md hover:shadow-lg transition-all">
               <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shadow-md">
-                  <span className="text-2xl">⚡</span>
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shadow-md flex-shrink-0">
+                  <span className="text-xl sm:text-2xl">⚡</span>
                 </div>
                 <div>
                   <p className="text-gray-600 text-xs font-semibold uppercase tracking-wide">
                     Processing
                   </p>
-                  <p className="text-amber-600 text-xl font-bold">Real-time</p>
+                  <p className="text-amber-600 text-lg sm:text-xl font-bold">Real-time</p>
                 </div>
               </div>
             </div>
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-5 border-2 border-purple-200 shadow-md hover:shadow-lg transition-all">
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 sm:p-5 border-2 border-purple-200 shadow-md hover:shadow-lg transition-all">
               <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl flex items-center justify-center shadow-md">
-                  <span className="text-2xl">🤖</span>
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl flex items-center justify-center shadow-md flex-shrink-0">
+                  <span className="text-xl sm:text-2xl">🤖</span>
                 </div>
                 <div>
                   <p className="text-gray-600 text-xs font-semibold uppercase tracking-wide">
                     AI Model
                   </p>
-                  <p className="text-violet-600 text-xl font-bold">Gemini</p>
+                  <p className="text-violet-600 text-lg sm:text-xl font-bold">Gemini</p>
                 </div>
               </div>
             </div>
@@ -795,7 +801,7 @@ const AnalyzeFeedbackContent = ({ onAnalysisComplete }) => {
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
-          className={`relative border-3 border-dashed rounded-3xl p-12 text-center transition-all duration-300 ${
+          className={`relative border-3 border-dashed rounded-3xl p-6 sm:p-12 text-center transition-all duration-300 ${
             isDragging
               ? "border-violet-400 bg-gradient-to-br from-violet-50 via-purple-50 to-fuchsia-50 scale-[1.02] shadow-xl"
               : selectedFile
@@ -806,7 +812,7 @@ const AnalyzeFeedbackContent = ({ onAnalysisComplete }) => {
           <div className="flex flex-col items-center">
             {/* Icon */}
             <div
-              className={`w-24 h-24 rounded-3xl flex items-center justify-center mb-6 transition-all duration-300 shadow-xl ${
+              className={`w-16 h-16 sm:w-24 sm:h-24 rounded-3xl flex items-center justify-center mb-4 sm:mb-6 transition-all duration-300 shadow-xl ${
                 selectedFile
                   ? "bg-gradient-to-br from-emerald-400 via-teal-400 to-green-500 shadow-emerald-200"
                   : "bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-600 shadow-purple-200"
@@ -814,7 +820,7 @@ const AnalyzeFeedbackContent = ({ onAnalysisComplete }) => {
             >
               {selectedFile ? (
                 <svg
-                  className="w-12 h-12 text-white"
+                  className="w-8 h-8 sm:w-12 sm:h-12 text-white"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -828,7 +834,7 @@ const AnalyzeFeedbackContent = ({ onAnalysisComplete }) => {
                 </svg>
               ) : (
                 <svg
-                  className="w-12 h-12 text-white"
+                  className="w-8 h-8 sm:w-12 sm:h-12 text-white"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -845,7 +851,7 @@ const AnalyzeFeedbackContent = ({ onAnalysisComplete }) => {
 
             {/* Text */}
             <div className="mb-6">
-              <p className="text-xl font-bold text-gray-700 mb-2">
+              <p className="text-lg sm:text-xl font-bold text-gray-700 mb-2">
                 {selectedFile ? (
                   <span className="flex items-center justify-center space-x-2">
                     <span className="text-2xl text-emerald-500">✓</span>
@@ -867,7 +873,7 @@ const AnalyzeFeedbackContent = ({ onAnalysisComplete }) => {
             </div>
 
             {/* File Type Badges */}
-            <div className="flex items-center space-x-3 mb-8">
+            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mb-6 sm:mb-8">
               {[
                 { type: "CSV", color: "from-violet-400 to-purple-500" },
                 { type: "XLSX", color: "from-emerald-400 to-teal-500" },
@@ -1075,7 +1081,7 @@ const AnalyzeFeedbackContent = ({ onAnalysisComplete }) => {
                     <div className="absolute inset-0 bg-purple-300 rounded-2xl animate-ping opacity-20"></div>
                   </div>
                   <div>
-                    <h4 className="text-xl font-bold text-gray-700">
+                    <h4 className="text-lg sm:text-xl font-bold text-gray-700">
                       🤖 AI Analysis in Progress
                     </h4>
                     <p className="text-sm text-gray-600 font-medium">
@@ -1105,7 +1111,7 @@ const AnalyzeFeedbackContent = ({ onAnalysisComplete }) => {
               </div>
 
               {/* Analysis Steps */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 <div className="bg-white rounded-2xl p-5 shadow-md border-2 border-emerald-200 hover:shadow-lg transition-all">
                   <div className="flex items-center space-x-3">
                     <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center shadow-md">
@@ -1196,9 +1202,9 @@ const AnalyzeFeedbackContent = ({ onAnalysisComplete }) => {
             <div className="absolute bottom-0 left-0 w-72 h-72 bg-gradient-to-tr from-emerald-100 to-green-100 opacity-40 rounded-full -ml-36 -mb-36"></div>
 
             <div className="relative z-10">
-              <div className="flex items-start justify-between mb-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
                 <div className="flex items-center space-x-4">
-                  <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl flex items-center justify-center shadow-lg">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0">
                     <svg
                       className="w-9 h-9 text-white"
                       fill="none"
@@ -1214,7 +1220,7 @@ const AnalyzeFeedbackContent = ({ onAnalysisComplete }) => {
                     </svg>
                   </div>
                   <div>
-                    <h4 className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent mb-1">
+                    <h4 className="text-xl sm:text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent mb-1">
                       🎉 AI Analysis Complete
                     </h4>
                     <p className="text-gray-600 text-base font-medium">
@@ -1251,7 +1257,7 @@ const AnalyzeFeedbackContent = ({ onAnalysisComplete }) => {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
             <div className="group bg-gradient-to-br from-purple-50 to-pink-50 rounded-3xl p-6 border-2 border-purple-200 hover:border-purple-300 hover:shadow-xl transition-all duration-300 hover:scale-105">
               <div className="flex items-center justify-between mb-3">
                 <div className="w-14 h-14 bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
@@ -1326,9 +1332,9 @@ const AnalyzeFeedbackContent = ({ onAnalysisComplete }) => {
           {/* Results Cards - Beautiful Display */}
           <div className="bg-white rounded-3xl border-2 border-gray-200 overflow-hidden shadow-xl">
             <div className="bg-gradient-to-r from-purple-50 via-pink-50 to-rose-50 p-8 border-b-2 border-gray-200">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div className="w-14 h-14 bg-gradient-to-br from-violet-500 to-fuchsia-600 rounded-2xl flex items-center justify-center shadow-lg">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div className="flex items-center space-x-3 sm:space-x-4">
+                  <div className="w-11 h-11 sm:w-14 sm:h-14 bg-gradient-to-br from-violet-500 to-fuchsia-600 rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0">
                     <svg
                       className="w-7 h-7 text-white"
                       fill="none"
@@ -1344,7 +1350,7 @@ const AnalyzeFeedbackContent = ({ onAnalysisComplete }) => {
                     </svg>
                   </div>
                   <div>
-                    <h4 className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent">
+                    <h4 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent">
                       📋 Detailed Analysis Results
                     </h4>
                     <p className="text-sm text-gray-600 mt-1 font-medium">
